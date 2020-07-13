@@ -62,16 +62,26 @@ BoxLayout:
             text: str(app.EYE_AR_THRESH)
 
         Label:
-            text: 'Consec Frames'
+            text: 'Blink Time'
 
         Label:
             id: frames_label
-            text: '{:.2f}'.format(app.COUNTER)
+            text: '{:.2f}'.format(app.blink_time_counter)
 
         TextInput:
             id: frames_in
             multiline: False
-            text: str(app.EYE_AR_CONSEC_FRAMES)
+            text: str(app.microsleep)
+
+        Label:
+            text: 'FPS'
+
+        Label:
+            id: fps_label
+            text: '{:.2f}'.format(app.fps)
+
+        Widget:
+
 
         Button:
             text: 'Save'
@@ -134,7 +144,8 @@ class MyApp(App):
         # grab the indexes of the facial landmarks for the left and
         # right eye, respectively
         (self.lStart, self.lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
-        (self.rStart, self.rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
+        (self.rStart,
+         self.rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
 
         # start the video stream thread
         print("[INFO] starting video stream thread...")
@@ -144,6 +155,17 @@ class MyApp(App):
         # define the image to be shown on the kivy app
         self.capture = None
         self.ret = None
+
+        self.fps = 0.0
+
+        # define the threashold for duration of a blink
+        # blink time average is 100–150 milliseconds
+        # or 0.150 secends
+        # Closures in excess of 1000 ms or 1 second were 
+        # defined as microsleeps.
+        self.blink_time_counter : float = 0.0
+        self.microsleep : float = 1.0
+        self.blink_threshhold : float = 0.15
 
     def sound_alarm(self):
         # play an alarm sound
@@ -173,7 +195,7 @@ class MyApp(App):
         print('[INFO] Saving: EAR: ', a, ' Frames: ', b)
         try:
             self.EYE_AR_THRESH = float(a)
-            self.EYE_AR_CONSEC_FRAMES = int(b)\
+            self.microsleep = float(b)
 
             # end the predict thread and start it again
             print('[INFO] Stopping predict thread')
@@ -205,6 +227,10 @@ class MyApp(App):
     def detection(self):
         # loop over frames from the video stream
         while True:
+
+            # start time for fps
+            start_time = time.time()
+
             # grab the frame from the threaded video file stream, resize
             # it, and convert it to grayscale
             # channels)
@@ -235,7 +261,7 @@ class MyApp(App):
                 self.ear = (leftEAR + rightEAR) / 2.0
 
                 self.root.ids.ear_label.text = '{:.2f}'.format(self.ear)
-                self.root.ids.frames_label.text = str(self.COUNTER)
+                self.root.ids.frames_label.text = '{:.2f}'.format(self.blink_time_counter)
 
                 # compute the convex hull for the left and right eye, then
                 # visualize each of the eyes
@@ -249,9 +275,12 @@ class MyApp(App):
                 if self.ear < self.EYE_AR_THRESH:
                     self.COUNTER += 1
 
+                    # start counting for time
+                    self.blink_time_counter += time.time() - start_time
+
                     # if the eyes were closed for a sufficient number of
                     # then sound the alarm
-                    if self.COUNTER >= self.EYE_AR_CONSEC_FRAMES:
+                    if self.blink_time_counter >= self.microsleep:
                         # if the alarm is not on, turn it on
                         if not self.ALARM_ON:
                             self.ALARM_ON = True
@@ -274,6 +303,7 @@ class MyApp(App):
                 else:
                     self.COUNTER = 0
                     self.ALARM_ON = False
+                    self.blink_time_counter = 0
 
                 # draw the computed eye aspect ratio on the frame to help
                 # with debugging and setting the correct eye aspect ratio
@@ -289,6 +319,8 @@ class MyApp(App):
 
             global image
             image = frame
+            self.fps = 1.0 / (time.time() - start_time)
+            self.root.ids.fps_label.text = '{:.2f}'.format(self.fps)
 
 
 MyApp().run()

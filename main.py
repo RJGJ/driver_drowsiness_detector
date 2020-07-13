@@ -8,6 +8,7 @@ if __name__ == '__main__':
 
     if args.gui == 1:
         print('running with gui')
+        os.system('python main.py')
     elif args.gui == 0:
         print('no gui \npress "q" to exit')
         os.system('''
