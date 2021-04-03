@@ -11,7 +11,7 @@ Kivy-Garden==0.1.4
 numpy==1.19.0
 opencv-python==4.2.0.34
 playsound==1.2.2
-Pygments==2.6.1
+Pygments==2.7.4
 pypiwin32==223
 pywin32==228
 requests==2.24.0
