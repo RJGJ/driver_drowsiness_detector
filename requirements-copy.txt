@@ -1,0 +1,17 @@
+certifi
+chardet
+dlib
+docutils
+idna
+imutils
+Kivy
+Kivy-Garden
+numpy
+opencv-python
+# playsound
+Pygments
+# pypiwin32
+# pywin32
+requests
+scipy
+urllib3

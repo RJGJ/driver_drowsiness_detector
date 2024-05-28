@@ -1,6 +1,7 @@
 # add the following 2 lines to solve OpenGL 2.0 bug
 from kivy import Config
-Config.set('graphics', 'multisamples', '0')
+
+Config.set("graphics", "multisamples", "0")
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -18,7 +19,7 @@ from imutils.video import VideoStream
 from imutils import face_utils
 from threading import Thread
 
-import playsound
+# import playsound
 import argparse
 import imutils
 import time
@@ -28,7 +29,7 @@ import cv2
 # image variable
 image = None
 
-KV = '''
+KV = """
 BoxLayout:
     orientation: 'vertical'
     spacing: dp(20)
@@ -86,7 +87,7 @@ BoxLayout:
         Button:
             text: 'Save'
             on_release: app.save(ear_in.text, frames_in.text)
-'''
+"""
 
 
 class KivyCamera(Image):
@@ -104,11 +105,9 @@ class KivyCamera(Image):
             buf1 = cv2.flip(frame, 0)
             buf = buf1.tobytes()
             image_texture = Texture.create(
-                size=(
-                    frame.shape[1],
-                    frame.shape[0]),
-                colorfmt='rgb')
-            image_texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
+                size=(frame.shape[1], frame.shape[0]), colorfmt="rgb"
+            )
+            image_texture.blit_buffer(buf, colorfmt="rgb", bufferfmt="ubyte")
             # display image from the texture
             self.texture = image_texture
 
@@ -139,13 +138,12 @@ class MyApp(App):
         # the facial landmark predictor
         print("[INFO] loading facial landmark predictor...")
         self.detector = dlib.get_frontal_face_detector()
-        self.predictor = dlib.shape_predictor(r'predictor.dat')
+        self.predictor = dlib.shape_predictor(r"predictor.dat")
 
         # grab the indexes of the facial landmarks for the left and
         # right eye, respectively
         (self.lStart, self.lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
-        (self.rStart,
-         self.rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
+        (self.rStart, self.rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
 
         # start the video stream thread
         print("[INFO] starting video stream thread...")
@@ -161,15 +159,16 @@ class MyApp(App):
         # define the threashold for duration of a blink
         # blink time average is 100–150 milliseconds
         # or 0.150 secends
-        # Closures in excess of 1000 ms or 1 second were 
+        # Closures in excess of 1000 ms or 1 second were
         # defined as microsleeps.
-        self.blink_time_counter : float = 0.0
-        self.microsleep : float = 1.0
-        self.blink_threshhold : float = 0.15
+        self.blink_time_counter: float = 0.0
+        self.microsleep: float = 1.0
+        self.blink_threshhold: float = 0.15
 
     def sound_alarm(self):
         # play an alarm sound
-        playsound.playsound(r'alarm.wav')
+        # playsound.playsound(r'alarm.wav')
+        pass
 
     def eye_aspect_ratio(self, eye):
         # compute the euclidean distances between the two sets of
@@ -188,20 +187,20 @@ class MyApp(App):
         return ear
 
     def say_hello(self, *arg):
-        print('hello world!')
+        print("hello world!")
         pass
 
     def save(self, a, b):
-        print('[INFO] Saving: EAR: ', a, ' Frames: ', b)
+        print("[INFO] Saving: EAR: ", a, " Frames: ", b)
         try:
             self.EYE_AR_THRESH = float(a)
             self.microsleep = float(b)
 
             # end the predict thread and start it again
-            print('[INFO] Stopping predict thread')
+            print("[INFO] Stopping predict thread")
             self.stop_thread = True
             self.stop_thread = False
-            print('[INFO] Starting predict thread')
+            print("[INFO] Starting predict thread")
             detection_thread = Thread(target=self.detection)
             detection_thread.deamon = True
             detection_thread.start()
@@ -252,16 +251,18 @@ class MyApp(App):
 
                 # extract the left and right eye coordinates, then use the
                 # coordinates to compute the eye aspect ratio for both eyes
-                leftEye = shape[self.lStart:self.lEnd]
-                rightEye = shape[self.rStart:self.rEnd]
+                leftEye = shape[self.lStart : self.lEnd]
+                rightEye = shape[self.rStart : self.rEnd]
                 leftEAR = self.eye_aspect_ratio(leftEye)
                 rightEAR = self.eye_aspect_ratio(rightEye)
 
                 # average the eye aspect ratio together for both eyes
                 self.ear = (leftEAR + rightEAR) / 2.0
 
-                self.root.ids.ear_label.text = '{:.2f}'.format(self.ear)
-                self.root.ids.frames_label.text = '{:.2f}'.format(self.blink_time_counter)
+                self.root.ids.ear_label.text = "{:.2f}".format(self.ear)
+                self.root.ids.frames_label.text = "{:.2f}".format(
+                    self.blink_time_counter
+                )
 
                 # compute the convex hull for the left and right eye, then
                 # visualize each of the eyes
@@ -296,7 +297,10 @@ class MyApp(App):
                             "DROWSINESS ALERT!",
                             (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX,
-                            0.7, (0, 0, 255), 2)
+                            0.7,
+                            (0, 0, 255),
+                            2,
+                        )
 
                 # otherwise, the eye aspect ratio is not below the blink
                 # threshold, so reset the counter and alarm
@@ -309,10 +313,14 @@ class MyApp(App):
                 # with debugging and setting the correct eye aspect ratio
                 # thresholds and frame counters
                 cv2.putText(
-                    frame, "EAR: {:.2f}".format(self.ear),
+                    frame,
+                    "EAR: {:.2f}".format(self.ear),
                     (300, 30),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7, (0, 0, 255), 2)
+                    0.7,
+                    (0, 0, 255),
+                    2,
+                )
 
             if self.stop_thread:
                 break
@@ -320,7 +328,7 @@ class MyApp(App):
             global image
             image = frame
             self.fps = 1.0 / (time.time() - start_time)
-            self.root.ids.fps_label.text = '{:.2f}'.format(self.fps)
+            self.root.ids.fps_label.text = "{:.2f}".format(self.fps)
 
 
 MyApp().run()

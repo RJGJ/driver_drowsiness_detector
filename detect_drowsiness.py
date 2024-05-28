@@ -8,7 +8,7 @@ from imutils.video import VideoStream
 from imutils import face_utils
 from threading import Thread
 
-import playsound
+# import playsound
 import argparse
 import imutils
 import time
@@ -18,7 +18,8 @@ import cv2
 
 def sound_alarm(path):
     # play an alarm sound
-    playsound.playsound(path)
+    # playsound.playsound(path)
+    pass
 
 
 def eye_aspect_ratio(eye):
